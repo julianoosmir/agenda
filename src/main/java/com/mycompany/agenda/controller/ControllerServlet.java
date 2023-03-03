@@ -1,5 +1,10 @@
 package com.mycompany.agenda.controller;
 
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import com.mycompany.agenda.model.DAO;
 import com.mycompany.agenda.model.JavaBeans;
 import java.io.IOException;
@@ -11,7 +16,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@WebServlet(name = "ControllerServlet", urlPatterns ={ "/Controller", "/main", "/insert", "/select", "/update", "/delete", "/report" })
+@WebServlet(name = "ControllerServlet", urlPatterns = {"/Controller", "/main", "/insert", "/select", "/update", "/delete", "/report"})
 public class ControllerServlet extends HttpServlet {
 
     JavaBeans contato = new JavaBeans();
@@ -47,7 +52,7 @@ public class ControllerServlet extends HttpServlet {
             case "/delete":
                 removerContato(request, response);
                 break;
-            case "report":
+            case "/report":
                 gerarRelatorio(request, response);
                 break;
             default:
@@ -99,7 +104,33 @@ public class ControllerServlet extends HttpServlet {
     }
 
     private void gerarRelatorio(HttpServletRequest request, HttpServletResponse response) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        Document documento = new Document();
+        try {
+            response.setContentType("apllication/pdf");
+            response.addHeader("Content-Disposition", "inline; filename=" + "contatos.pdf");
+            PdfWriter.getInstance(documento, response.getOutputStream());
+            documento.open();
+            documento.add(new Paragraph("Lista de contatos:"));
+            documento.add(new Paragraph(" "));
+            PdfPTable tabela = new PdfPTable(3);
+            PdfPCell col1 = new PdfPCell(new Paragraph("Nome"));
+            PdfPCell col2 = new PdfPCell(new Paragraph("Fone"));
+            PdfPCell col3 = new PdfPCell(new Paragraph("E-mail"));
+            tabela.addCell(col1);
+            tabela.addCell(col2);
+            tabela.addCell(col3);
+            ArrayList<JavaBeans> lista = dao.listarContatos();
+            for (int i = 0; i < lista.size(); i++) {
+                tabela.addCell(lista.get(i).getNome());
+                tabela.addCell(lista.get(i).getFone());
+                tabela.addCell(lista.get(i).getEmail());
+            }
+            documento.add(tabela);
+            documento.close();
+        } catch (Exception e) {
+            System.out.println(e);
+            documento.close();
+        }
     }
 
 }
